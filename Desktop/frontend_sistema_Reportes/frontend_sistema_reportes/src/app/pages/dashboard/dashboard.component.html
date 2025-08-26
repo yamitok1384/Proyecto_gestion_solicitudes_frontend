@@ -1,50 +1,88 @@
-<div class="h-screen bg-gray-100 flex flex-col">
-  <!-- Encabezado de la página -->
-  <header class="bg-white shadow-sm p-4 flex justify-between items-center">
-    <h1 class="text-xl font-semibold text-gray-800">Panel de Control de Reportes</h1>
+<div class="flex flex-col h-screen bg-gray-100 p-4 sm:p-6 md:p-8">
+  <!-- Encabezado con título y botón de cerrar sesión -->
+  <header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-300">
+    <h1 class="text-3xl font-bold text-gray-800">Panel de Control de Reportes</h1>
     <button
       (click)="onLogout()"
-      class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
+      class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-xl shadow-md transition-colors"
     >
       Cerrar Sesión
     </button>
   </header>
 
-  <!-- Contenido principal -->
-  <main class="flex-grow p-6 overflow-auto">
-    <div class="container mx-auto">
-      <h2 class="text-2xl font-bold mb-4 text-gray-700">Mis Incidencias</h2>
-      
-      <!-- Tabla de reportes (vacía por ahora) -->
-      <div class="bg-white shadow-md rounded-lg overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Título
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Estado
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Fecha de Creación
-              </th>
-              <th scope="col" class="relative px-6 py-3">
-                <span class="sr-only">Acciones</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <!-- Aquí se mostrarán los reportes dinámicamente -->
-            <tr>
-              <td colspan="4" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
-                Cargando reportes...
-              </td>
-            </tr>
-          </tbody>
-        </table>
+  <!-- Contenido principal basado en el rol del usuario -->
+  <main class="flex-grow">
+    <!-- Contenido para el Administrador -->
+    <div *ngIf="userRole === 'administrador'">
+      <h2 class="text-2xl font-semibold text-gray-700 mb-4">Todas las Incidencias</h2>
+      <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200">
+        <!-- Tabla de incidencias -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full table-auto">
+            <thead class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+              <tr>
+                <th class="py-3 px-6 text-left">Título</th>
+                <th class="py-3 px-6 text-left">Estado</th>
+                <th class="py-3 px-6 text-left">Fecha de Creación</th>
+                <th class="py-3 px-6 text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="text-gray-600 text-sm font-light">
+              <!-- Usamos el pipe 'async' para suscribirnos al Observable -->
+              <tr *ngFor="let incidencia of incidencias$ | async" class="border-b border-gray-200 hover:bg-gray-100">
+                <td class="py-3 px-6 text-left whitespace-nowrap">{{ incidencia.titulo }}</td>
+                <td class="py-3 px-6 text-left">{{ incidencia.estado?.nombre_estado }}</td>
+                <td class="py-3 px-6 text-left">{{ incidencia.fecha_creacion | date: 'medium' }}</td>
+                <td class="py-3 px-6 text-center">
+                  <button class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-md">Ver</button>
+                </td>
+              </tr>
+              <!-- Mensaje si no hay incidencias -->
+              <tr *ngIf="(incidencias$ | async)?.length === 0">
+                <td colspan="4" class="py-4 text-center text-gray-500">No hay incidencias para mostrar.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Contenido para el Trabajador -->
+    <div *ngIf="userRole === 'trabajador'">
+      <h2 class="text-2xl font-semibold text-gray-700 mb-4">Mis Incidencias</h2>
+      <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200">
+        <!-- Tabla de incidencias del trabajador -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full table-auto">
+            <thead class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+              <tr>
+                <th class="py-3 px-6 text-left">Título</th>
+                <th class="py-3 px-6 text-left">Estado</th>
+                <th class="py-3 px-6 text-left">Fecha de Creación</th>
+                <th class="py-3 px-6 text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="text-gray-600 text-sm font-light">
+              <tr *ngFor="let incidencia of incidencias$ | async" class="border-b border-gray-200 hover:bg-gray-100">
+                <td class="py-3 px-6 text-left whitespace-nowrap">{{ incidencia.titulo }}</td>
+                <td class="py-3 px-6 text-left">{{ incidencia.estado?.nombre_estado }}</td>
+                <td class="py-3 px-6 text-left">{{ incidencia.fecha_creacion | date: 'medium' }}</td>
+                <td class="py-3 px-6 text-center">
+                  <button class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-md">Ver</button>
+                </td>
+              </tr>
+              <tr *ngIf="(incidencias$ | async)?.length === 0">
+                <td colspan="4" class="py-4 text-center text-gray-500">No hay incidencias para mostrar.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </main>
+  
+  <!-- Pie de página -->
+  <footer class="mt-8 text-center text-gray-500 text-sm">
+    Sistema de Reportes de Incidencias &copy; 2024
+  </footer>
 </div>
-
